@@ -29,16 +29,11 @@ abstract class AppLocalizations {
       _AppLocalizationsDelegate();
 
   /// Locales the app ships with. Anything else falls back to English.
-  static const supportedLocales = <Locale>[
-    Locale('en'),
-    Locale('tr'),
-  ];
+  static const supportedLocales = <Locale>[Locale('en'), Locale('tr')];
 
   /// Returns true when [locale] is one of the supported languages.
   static bool isSupported(Locale locale) {
-    return supportedLocales.any(
-      (l) => l.languageCode == locale.languageCode,
-    );
+    return supportedLocales.any((l) => l.languageCode == locale.languageCode);
   }
 
   // ── Locale resolution ─────────────────────────────────────────────
@@ -213,6 +208,17 @@ abstract class AppLocalizations {
 
   // ── Appearance ──────────────────────────────────────────────────────
   String get appearance;
+  String get dataBackup;
+  String get exportBackup;
+  String get restoreBackup;
+  String get exportBackupSubtitle;
+  String get restoreBackupSubtitle;
+  String get backupExported;
+  String get backupExportFailed;
+  String get backupRestored;
+  String get backupRestoreFailed;
+  String get restoreBackupTitle;
+  String get restoreBackupBody;
 
   // ── Categories ──────────────────────────────────────────────────────
   String catElectronics();

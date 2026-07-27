@@ -269,6 +269,28 @@ class AppLocalizationsTr extends AppLocalizationsEn {
         return 'Sil';
       case 'appearance':
         return 'Görünüm';
+      case 'dataBackup':
+        return 'Veri yedeği';
+      case 'exportBackup':
+        return 'Yedeği dışa aktar';
+      case 'restoreBackup':
+        return 'Yedeği geri yükle';
+      case 'exportBackupSubtitle':
+        return 'Saklayabileceğiniz veya paylaşabileceğiniz yerel bir JSON dosyası oluşturur.';
+      case 'restoreBackupSubtitle':
+        return 'Daha önce dışa aktarılmış Warrantify JSON yedeğini içe aktarır.';
+      case 'backupExported':
+        return 'Yedek dışa aktarıldı';
+      case 'backupExportFailed':
+        return 'Yedek dışa aktarılamadı';
+      case 'backupRestored':
+        return '{n} ürün geri yüklendi';
+      case 'backupRestoreFailed':
+        return 'Yedek geri yüklenemedi';
+      case 'restoreBackupTitle':
+        return 'Yedek geri yüklensin mi?';
+      case 'restoreBackupBody':
+        return 'Bu işlem cihazda kayıtlı mevcut garantilerin yerine yedekteki verileri koyar.';
       default:
         return super.get(key);
     }

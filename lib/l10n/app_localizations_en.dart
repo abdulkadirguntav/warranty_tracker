@@ -269,6 +269,28 @@ class AppLocalizationsEn extends AppLocalizations {
         return 'Delete';
       case 'appearance':
         return 'Appearance';
+      case 'dataBackup':
+        return 'Data backup';
+      case 'exportBackup':
+        return 'Export backup';
+      case 'restoreBackup':
+        return 'Restore backup';
+      case 'exportBackupSubtitle':
+        return 'Create a local JSON file you can keep or share.';
+      case 'restoreBackupSubtitle':
+        return 'Import a previously exported Warrantify JSON backup.';
+      case 'backupExported':
+        return 'Backup exported';
+      case 'backupExportFailed':
+        return 'Backup could not be exported';
+      case 'backupRestored':
+        return 'Restored {n} products';
+      case 'backupRestoreFailed':
+        return 'Backup could not be restored';
+      case 'restoreBackupTitle':
+        return 'Restore backup?';
+      case 'restoreBackupBody':
+        return 'This will replace the warranties currently stored on this device.';
       default:
         return key;
     }
@@ -537,6 +559,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dismissDeleteLabel => get('dismissDeleteLabel');
   @override
   String get appearance => get('appearance');
+  @override
+  String get dataBackup => get('dataBackup');
+  @override
+  String get exportBackup => get('exportBackup');
+  @override
+  String get restoreBackup => get('restoreBackup');
+  @override
+  String get exportBackupSubtitle => get('exportBackupSubtitle');
+  @override
+  String get restoreBackupSubtitle => get('restoreBackupSubtitle');
+  @override
+  String get backupExported => get('backupExported');
+  @override
+  String get backupExportFailed => get('backupExportFailed');
+  @override
+  String get backupRestored => get('backupRestored');
+  @override
+  String get backupRestoreFailed => get('backupRestoreFailed');
+  @override
+  String get restoreBackupTitle => get('restoreBackupTitle');
+  @override
+  String get restoreBackupBody => get('restoreBackupBody');
 
   @override
   String catElectronics() => 'Electronics';

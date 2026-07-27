@@ -167,6 +167,12 @@ class NotificationService {
     );
   }
 
+  /// Cancels every pending notification created by the app.
+  Future<void> cancelAllNotifications() async {
+    await init();
+    await _plugin.cancelAll();
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────
 
   /// Generates a stable 31-bit integer ID from the item UUID and the
