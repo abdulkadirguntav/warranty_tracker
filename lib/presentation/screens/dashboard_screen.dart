@@ -210,17 +210,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       builder: (ctx) => AlertDialog(
         title: Text(l.deleteItemTitle),
         content: Text(l.deleteItemBody.withName(item.productName)),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
+          SizedBox(
+            height: 48,
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(112, 48)),
+              child: Text(l.cancel),
             ),
-            child: Text(l.delete),
+          ),
+          SizedBox(
+            height: 48,
+            child: FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(ctx).colorScheme.error,
+                minimumSize: const Size(112, 48),
+              ),
+              child: Text(l.delete),
+            ),
           ),
         ],
       ),

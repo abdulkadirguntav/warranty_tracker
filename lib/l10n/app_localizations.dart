@@ -152,6 +152,8 @@ abstract class AppLocalizations {
   String get productNameHint;
   String get productNameRequired;
   String get categoryLabel;
+  String get categoryHint;
+  String get categoryRequired;
   String get purchaseDateLabel;
   String get durationLabel;
   String get monthsSuffix;
@@ -187,6 +189,9 @@ abstract class AppLocalizations {
   String get itemUpdated;
   String get itemAdded;
   String get invalidCost;
+  String get expiredWarrantyTitle;
+  String get expiredWarrantyBody;
+  String get addExpiredWarranty;
 
   // ── Service record dialog ──────────────────────────────────────────
   String get serviceDateLabel;

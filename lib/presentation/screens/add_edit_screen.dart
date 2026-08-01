@@ -38,9 +38,13 @@ class AddEditScreen extends ConsumerStatefulWidget {
 
 class _AddEditScreenState extends ConsumerState<AddEditScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
+  final _productNameFieldKey = GlobalKey();
+  final _categoryFieldKey = GlobalKey();
+  final _warrantySectionKey = GlobalKey();
   late final TextEditingController _productNameCtrl;
   late final TextEditingController _notesCtrl;
-  late BrandCategory _category;
+  BrandCategory? _category;
   late DateTime _purchaseDate;
   late int _warrantyMonths;
   String? _receiptImagePath;
@@ -73,7 +77,7 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
     _notesCtrl = TextEditingController(text: item?.notes ?? '');
     _category = item != null
         ? _matchCategoryFromCanonical(item.brandCategory)
-        : BrandCategory.electronics;
+        : null;
     _purchaseDate = item?.purchaseDate ?? DateTime.now();
     _warrantyMonths =
         item?.warrantyDurationInMonths ?? AppConstants.defaultWarrantyMonths;
@@ -100,6 +104,7 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _productNameCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
@@ -175,8 +180,8 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
                   child: Text(
                     l.addProductPhoto,
                     style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -292,12 +297,15 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
     );
   }
 
-  void _removeDocument(int index) =>
-      setState(() => _documents.removeAt(index));
+  void _removeDocument(int index) => setState(() => _documents.removeAt(index));
 
   // ── Save ────────────────────────────────────────────────────────────
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (!_formKey.currentState!.validate()) {
+      _scrollToFirstError();
+      return;
+    }
 
     final productName = _productNameCtrl.text.trim();
     final notes = _notesCtrl.text.trim();
@@ -317,10 +325,22 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
       }
     }
 
+    final effectiveEndDate = _effectiveEndFromFields(
+      baseEndDate: endDate,
+      extendedWarrantyMonths: extMonths,
+      extendedWarrantyEndDate: extEndDate,
+    );
+    if (_isPastDate(effectiveEndDate)) {
+      await _scrollTo(_warrantySectionKey);
+      if (!mounted) return;
+      final shouldContinue = await _confirmExpiredWarranty(effectiveEndDate);
+      if (shouldContinue != true) return;
+    }
+
     final item = WarrantyItem(
       id: id,
       productName: productName,
-      brandCategory: _category.label,
+      brandCategory: _category!.label,
       purchaseDate: _purchaseDate,
       warrantyDurationInMonths: _warrantyMonths,
       endDate: endDate,
@@ -351,34 +371,120 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
     context.pop();
   }
 
+  void _scrollToFirstError() {
+    final targetKey = _productNameCtrl.text.trim().isEmpty
+        ? _productNameFieldKey
+        : _categoryFieldKey;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollTo(targetKey));
+  }
+
+  Future<void> _scrollTo(GlobalKey key) async {
+    final context = key.currentContext;
+    if (context == null) return;
+    await Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      alignment: 0.12,
+    );
+  }
+
+  bool _isPastDate(DateTime date) {
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    return dateOnly.isBefore(todayOnly);
+  }
+
+  DateTime _effectiveEndFromFields({
+    required DateTime baseEndDate,
+    required int? extendedWarrantyMonths,
+    required DateTime? extendedWarrantyEndDate,
+  }) {
+    if (!_hasExtendedWarranty) return baseEndDate;
+    if (extendedWarrantyEndDate != null) return extendedWarrantyEndDate;
+    if (extendedWarrantyMonths != null) {
+      return WarrantyCalculator.calculateEndDateEx(
+        baseDate: baseEndDate,
+        additionalMonths: extendedWarrantyMonths,
+      );
+    }
+    return baseEndDate;
+  }
+
+  Future<bool?> _confirmExpiredWarranty(DateTime effectiveEndDate) {
+    final l = AppLocalizations.of(context);
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.expiredWarrantyTitle),
+        content: Text(
+          l.expiredWarrantyBody.withDate(
+            DateFormatter.format(effectiveEndDate),
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          SizedBox(
+            height: 48,
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(112, 48)),
+              child: Text(l.cancel),
+            ),
+          ),
+          SizedBox(
+            height: 48,
+            child: FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: FilledButton.styleFrom(minimumSize: const Size(112, 48)),
+              child: Text(l.addExpiredWarranty),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? l.editWarrantyTitle : l.addWarrantyTitle)),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          children: [
-            _sectionLabel(l.sectionProductInfo),
-            _productInfoSection(l),
-            const SizedBox(height: 16),
-            _sectionLabel(l.sectionWarrantyInfo),
-            _warrantySection(l),
-            const SizedBox(height: 16),
-            _sectionLabel(l.sectionAttachment),
-            _attachmentsSection(l),
-            const SizedBox(height: 16),
-            _sectionLabel(l.sectionNotes),
-            _notesSection(l),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _save,
-              icon: const Icon(Icons.save_outlined),
-              label: Text(_isEditing ? l.saveChanges : l.add),
-            ),
-          ],
+      appBar: AppBar(
+        title: Text(_isEditing ? l.editWarrantyTitle : l.addWarrantyTitle),
+      ),
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            controller: _scrollController,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            children: [
+              _sectionLabel(l.sectionProductInfo),
+              _productInfoSection(l),
+              const SizedBox(height: 16),
+              _sectionLabel(l.sectionWarrantyInfo),
+              KeyedSubtree(
+                key: _warrantySectionKey,
+                child: _warrantySection(l),
+              ),
+              const SizedBox(height: 16),
+              _sectionLabel(l.sectionAttachment),
+              _attachmentsSection(l),
+              const SizedBox(height: 16),
+              _sectionLabel(l.sectionNotes),
+              _notesSection(l),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.save_outlined),
+                label: Text(_isEditing ? l.saveChanges : l.add),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -401,7 +507,8 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
 
   // ── Product information ────────────────────────────────────────────
   Widget _productInfoSection(AppLocalizations l) {
-    final hasImage = _productImagePath != null &&
+    final hasImage =
+        _productImagePath != null &&
         _productImagePath!.isNotEmpty &&
         File(_productImagePath!).existsSync();
     return SectionCard(
@@ -409,6 +516,7 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextFormField(
+            key: _productNameFieldKey,
             controller: _productNameCtrl,
             style: Theme.of(context).textTheme.bodyLarge,
             decoration: InputDecoration(
@@ -416,37 +524,44 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
               hintText: l.productNameHint,
             ),
             textInputAction: TextInputAction.next,
-            validator: (val) =>
-                (val == null || val.trim().isEmpty)
-                    ? l.productNameRequired
-                    : null,
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            validator: (val) => (val == null || val.trim().isEmpty)
+                ? l.productNameRequired
+                : null,
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<BrandCategory>(
+            key: _categoryFieldKey,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
             dropdownColor: Theme.of(context).cardTheme.color,
             initialValue: _category,
             decoration: InputDecoration(labelText: l.categoryLabel),
+            hint: Text(l.categoryHint),
             items: BrandCategory.all
-                .map((c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(
-                        c.localizedName(l),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(
+                      c.localizedName(l),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
             onChanged: (value) {
-              if (value != null) setState(() => _category = value);
+              setState(() => _category = value);
             },
+            validator: (value) => value == null ? l.categoryRequired : null,
           ),
           const SizedBox(height: 16),
-          Text(l.productPhotoOptional,
-              style: Theme.of(context).textTheme.labelMedium),
+          Text(
+            l.productPhotoOptional,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -556,22 +671,25 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
                 color: Theme.of(context).colorScheme.onSurface,
               ),
               dropdownColor: Theme.of(context).cardTheme.color,
-              decoration:
-                  InputDecoration(labelText: l.extendedWarrantyType),
+              decoration: InputDecoration(labelText: l.extendedWarrantyType),
               initialValue: _extendedUsesMonths,
               items: [
                 DropdownMenuItem(
                   value: true,
                   child: Text(
                     l.extendedTypeDuration,
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ),
                 DropdownMenuItem(
                   value: false,
                   child: Text(
                     l.extendedTypeDate,
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ],
@@ -586,14 +704,17 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(l.extendedMonthsLabel,
-                      style: Theme.of(context).textTheme.labelMedium),
+                  Text(
+                    l.extendedMonthsLabel,
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: AppConstants.commonExtendedWarrantyDurations
-                        .map((m) {
+                    children: AppConstants.commonExtendedWarrantyDurations.map((
+                      m,
+                    ) {
                       final selected = m == _extendedWarrantyMonths;
                       return ChoiceChip(
                         label: Text('$m${l.monthsSuffix}'),
@@ -613,9 +734,11 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
                     labelText: l.extendedEndDateInputLabel,
                     suffixIcon: const Icon(Icons.calendar_today_outlined),
                   ),
-                  child: Text(_extendedWarrantyEndDate != null
-                      ? DateFormatter.format(_extendedWarrantyEndDate!)
-                      : '—'),
+                  child: Text(
+                    _extendedWarrantyEndDate != null
+                        ? DateFormatter.format(_extendedWarrantyEndDate!)
+                        : '—',
+                  ),
                 ),
               ),
             const SizedBox(height: 12),
@@ -646,10 +769,12 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l.effectiveEndDate.withDate(DateFormatter.format(effectiveEnd)),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  l.effectiveEndDate.withDate(
+                    DateFormatter.format(effectiveEnd),
+                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 Text(
                   DateFormatter.remaining(effectiveEnd, l),
@@ -686,8 +811,7 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
     required int current,
     required ValueChanged<int?> onResult,
   }) async {
-    final controller =
-        TextEditingController(text: current.toString());
+    final controller = TextEditingController(text: current.toString());
     final result = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -720,15 +844,18 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
 
   // ── Attachments ───────────────────────────────────────────────────
   Widget _attachmentsSection(AppLocalizations l) {
-    final hasReceipt = _receiptImagePath != null &&
+    final hasReceipt =
+        _receiptImagePath != null &&
         _receiptImagePath!.isNotEmpty &&
         File(_receiptImagePath!).existsSync();
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(l.receiptPhotoOptional,
-              style: Theme.of(context).textTheme.labelMedium),
+          Text(
+            l.receiptPhotoOptional,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -748,7 +875,8 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
                     OutlinedButton.icon(
                       icon: const Icon(Icons.attach_file),
                       label: Text(
-                          _receiptImagePath == null ? l.addPhoto : l.changePhoto),
+                        _receiptImagePath == null ? l.addPhoto : l.changePhoto,
+                      ),
                       onPressed: _pickReceiptImage,
                     ),
                     if (_receiptImagePath != null)
@@ -767,8 +895,10 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l.documentsOptional,
-                  style: Theme.of(context).textTheme.labelMedium),
+              Text(
+                l.documentsOptional,
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
               TextButton.icon(
                 icon: const Icon(Icons.attach_file, size: 18),
                 label: Text(l.add),
@@ -787,8 +917,7 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
               itemBuilder: (context, index) {
                 final doc = _documents[index];
                 return ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 4),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
                   leading: const Icon(Icons.description_outlined),
                   title: Text(doc.label),
                   subtitle: Text(
@@ -820,6 +949,7 @@ class _AddEditScreenState extends ConsumerState<AddEditScreen> {
               labelText: l.notesLabel,
               hintText: l.notesHint,
             ),
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             maxLines: 4,
             minLines: 3,
           ),

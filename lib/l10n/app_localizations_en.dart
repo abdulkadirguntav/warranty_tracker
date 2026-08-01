@@ -173,6 +173,10 @@ class AppLocalizationsEn extends AppLocalizations {
         return 'Please enter a product name';
       case 'categoryLabel':
         return 'Category';
+      case 'categoryHint':
+        return 'Choose category';
+      case 'categoryRequired':
+        return 'Please choose a category';
       case 'purchaseDateLabel':
         return 'Purchase date';
       case 'durationLabel':
@@ -243,6 +247,12 @@ class AppLocalizationsEn extends AppLocalizations {
         return 'Item added';
       case 'invalidCost':
         return 'Invalid cost value';
+      case 'expiredWarrantyTitle':
+        return 'Warranty already expired';
+      case 'expiredWarrantyBody':
+        return 'This warranty ended on {date}. Do you still want to add it?';
+      case 'addExpiredWarranty':
+        return 'Add anyway';
       case 'serviceDateLabel':
         return 'Service date';
       case 'serviceCenterLabel':
@@ -464,6 +474,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get categoryLabel => get('categoryLabel');
   @override
+  String get categoryHint => get('categoryHint');
+  @override
+  String get categoryRequired => get('categoryRequired');
+  @override
   String get purchaseDateLabel => get('purchaseDateLabel');
   @override
   String get durationLabel => get('durationLabel');
@@ -533,6 +547,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemAdded => get('itemAdded');
   @override
   String get invalidCost => get('invalidCost');
+  @override
+  String get expiredWarrantyTitle => get('expiredWarrantyTitle');
+  @override
+  String get expiredWarrantyBody => get('expiredWarrantyBody');
+  @override
+  String get addExpiredWarranty => get('addExpiredWarranty');
   @override
   String get serviceDateLabel => get('serviceDateLabel');
   @override

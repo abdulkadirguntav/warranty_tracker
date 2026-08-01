@@ -60,14 +60,23 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       builder: (ctx) => AlertDialog(
         title: Text(l.confirmDeleteTitle),
         content: Text(l.confirmDeleteBody.withName(_item?.productName ?? '')),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
+          SizedBox(
+            height: 48,
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(112, 48)),
+              child: Text(l.cancel),
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l.delete),
+          SizedBox(
+            height: 48,
+            child: FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: FilledButton.styleFrom(minimumSize: const Size(112, 48)),
+              child: Text(l.delete),
+            ),
           ),
         ],
       ),
@@ -150,17 +159,15 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     final l = AppLocalizations.of(context);
     final file = File(doc.filePath);
     if (!file.existsSync()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.fileNotFound)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.fileNotFound)));
       return;
     }
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => _DocumentViewer(
-          filePath: doc.filePath,
-          label: doc.label,
-        ),
+        builder: (_) =>
+            _DocumentViewer(filePath: doc.filePath, label: doc.label),
       ),
     );
   }
@@ -232,7 +239,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       ),
     );
     if (confirmed != true) return;
-    await ref.read(warrantyItemsProvider.notifier).deleteServiceRecord(record.id);
+    await ref
+        .read(warrantyItemsProvider.notifier)
+        .deleteServiceRecord(record.id);
     await _loadItem();
   }
 }
@@ -324,16 +333,28 @@ class _InfoRows extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         child: Column(
           children: [
-            _row(context, Icons.calendar_today_outlined, l.purchaseDate,
-                DateFormatter.format(item.purchaseDate)),
+            _row(
+              context,
+              Icons.calendar_today_outlined,
+              l.purchaseDate,
+              DateFormatter.format(item.purchaseDate),
+            ),
             const Divider(),
-            _row(context, Icons.event_outlined, l.warrantyEnd,
-                DateFormatter.format(item.endDate)),
+            _row(
+              context,
+              Icons.event_outlined,
+              l.warrantyEnd,
+              DateFormatter.format(item.endDate),
+            ),
             if (item.hasExtendedWarranty) ...[
               const Divider(),
-              _row(context, Icons.shield_outlined, l.effectiveEnd,
-                  DateFormatter.format(item.effectiveEndDate),
-                  tint: Theme.of(context).colorScheme.primary),
+              _row(
+                context,
+                Icons.shield_outlined,
+                l.effectiveEnd,
+                DateFormatter.format(item.effectiveEndDate),
+                tint: Theme.of(context).colorScheme.primary,
+              ),
             ],
             const Divider(),
             _row(
@@ -360,8 +381,11 @@ class _InfoRows extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         children: [
-          Icon(icon, size: 20,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+          Icon(
+            icon,
+            size: 20,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
           const SizedBox(width: 12),
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
           Flexible(
@@ -395,10 +419,10 @@ class _ExtendedWarrantyCard extends StatelessWidget {
     final bodyLine = item.extendedWarrantyMonths != null
         ? l.extendedDurationLabel.withN(item.extendedWarrantyMonths!)
         : (item.extendedWarrantyEndDate != null
-            ? l.extendedEndDateLabel.withDate(
-                DateFormatter.format(item.extendedWarrantyEndDate!),
-              )
-            : '');
+              ? l.extendedEndDateLabel.withDate(
+                  DateFormatter.format(item.extendedWarrantyEndDate!),
+                )
+              : '');
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -416,17 +440,14 @@ class _ExtendedWarrantyCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l.extendedWarranty,
-                    style: theme.textTheme.titleMedium),
+                Text(l.extendedWarranty, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 4),
-                Text(
-                  bodyLine,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                Text(bodyLine, style: theme.textTheme.bodyMedium),
                 const SizedBox(height: 2),
                 Text(
-                  l.effectiveEndDate
-                      .withDate(DateFormatter.format(item.effectiveEndDate)),
+                  l.effectiveEndDate.withDate(
+                    DateFormatter.format(item.effectiveEndDate),
+                  ),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: accent,
@@ -460,10 +481,7 @@ class _NotesCard extends StatelessWidget {
           children: [
             Text(l.notes, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text(
-              item.notes,
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text(item.notes, style: theme.textTheme.bodyMedium),
           ],
         ),
       ),
@@ -487,7 +505,10 @@ class _ProductImage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l.productPhoto, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l.productPhoto,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -499,9 +520,9 @@ class _ProductImage extends StatelessWidget {
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => Container(
                     height: 160,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     child: Center(child: Text(l.productPhotoMissing)),
                   ),
                 ),
@@ -539,9 +560,7 @@ class _ReceiptImage extends StatelessWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (_, _, _) => Container(
                   height: 200,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   child: Center(child: Text(l.receiptImageMissing)),
                 ),
               ),
@@ -580,10 +599,9 @@ class _DocumentsSection extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primaryContainer
-                        .withValues(alpha: 0.4),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.4),
                   ),
                   child: Icon(
                     Icons.description_outlined,
@@ -827,12 +845,10 @@ class _ServiceRecordDialogState extends State<_ServiceRecordDialog> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _serviceCenterCtrl,
-                decoration:
-                    InputDecoration(labelText: l.serviceCenterLabel),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty)
-                        ? l.serviceCenterRequired
-                        : null,
+                decoration: InputDecoration(labelText: l.serviceCenterLabel),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? l.serviceCenterRequired
+                    : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -843,22 +859,20 @@ class _ServiceRecordDialogState extends State<_ServiceRecordDialog> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _costCtrl,
-                decoration:
-                    InputDecoration(labelText: l.costOptionalLabel),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(labelText: l.costOptionalLabel),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _trackingCtrl,
-                decoration:
-                    InputDecoration(labelText: l.trackingOptionalLabel),
+                decoration: InputDecoration(labelText: l.trackingOptionalLabel),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _notesCtrl,
-                decoration:
-                    InputDecoration(labelText: l.notesOptionalLabel),
+                decoration: InputDecoration(labelText: l.notesOptionalLabel),
                 maxLines: 2,
               ),
             ],
@@ -870,10 +884,7 @@ class _ServiceRecordDialogState extends State<_ServiceRecordDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(l.cancel),
         ),
-        FilledButton(
-          onPressed: _save,
-          child: Text(isEditing ? l.save : l.add),
-        ),
+        FilledButton(onPressed: _save, child: Text(isEditing ? l.save : l.add)),
       ],
     );
   }
@@ -910,8 +921,9 @@ class _ServiceRecordDialogState extends State<_ServiceRecordDialog> {
       serviceCenter: _serviceCenterCtrl.text.trim(),
       description: _descriptionCtrl.text.trim(),
       cost: cost,
-      trackingNumber:
-          _trackingCtrl.text.trim().isEmpty ? null : _trackingCtrl.text.trim(),
+      trackingNumber: _trackingCtrl.text.trim().isEmpty
+          ? null
+          : _trackingCtrl.text.trim(),
       notes: _notesCtrl.text.trim(),
     );
     Navigator.of(context).pop(record);

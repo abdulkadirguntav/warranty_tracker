@@ -132,14 +132,23 @@ class _BackupCardState extends ConsumerState<_BackupCard> {
       builder: (ctx) => AlertDialog(
         title: Text(l.restoreBackupTitle),
         content: Text(l.restoreBackupBody),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
+          SizedBox(
+            height: 48,
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(112, 48)),
+              child: Text(l.cancel),
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l.restoreBackup),
+          SizedBox(
+            height: 48,
+            child: FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: FilledButton.styleFrom(minimumSize: const Size(112, 48)),
+              child: Text(l.restoreBackup),
+            ),
           ),
         ],
       ),

@@ -173,6 +173,10 @@ class AppLocalizationsTr extends AppLocalizationsEn {
         return 'Lütfen bir ürün adı girin';
       case 'categoryLabel':
         return 'Kategori';
+      case 'categoryHint':
+        return 'Kategori seçin';
+      case 'categoryRequired':
+        return 'Lütfen bir kategori seçin';
       case 'purchaseDateLabel':
         return 'Satın alma tarihi';
       case 'durationLabel':
@@ -243,6 +247,12 @@ class AppLocalizationsTr extends AppLocalizationsEn {
         return 'Ürün eklendi';
       case 'invalidCost':
         return 'Geçersiz tutar';
+      case 'expiredWarrantyTitle':
+        return 'Garanti süresi geçmiş';
+      case 'expiredWarrantyBody':
+        return 'Bu garanti {date} tarihinde bitmiş görünüyor. Yine de eklemek istiyor musunuz?';
+      case 'addExpiredWarranty':
+        return 'Yine de ekle';
       case 'serviceDateLabel':
         return 'Servis tarihi';
       case 'serviceCenterLabel':
