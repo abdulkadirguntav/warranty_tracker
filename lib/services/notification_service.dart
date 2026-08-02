@@ -221,13 +221,18 @@ class NotificationService {
       iOS: iosDetails,
     );
 
+    // Uses an inexact schedule so the app does not need the restricted
+    // exact-alarm permissions (USE_EXACT_ALARM / SCHEDULE_EXACT_ALARM),
+    // which Google Play only grants to alarm/calendar apps. Warranty
+    // reminders are scheduled days in advance, so minute-exact timing is
+    // not required.
     await _plugin.zonedSchedule(
       id,
       title,
       body,
       scheduledDate,
       details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
   }
 }
